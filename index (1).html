@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iGreen Analytics · Controle de Matrizes</title>
+<style>
+  :root{
+    --bg:#0B1712;
+    --bg-panel:#0F1E17;
+    --card-bg:#152B21;
+    --card-bg-hover:#1B3529;
+    --card-border:#22402F;
+    --lime:#A6D93B;
+    --lime-soft:#C9EC6F;
+    --green-primary:#2E8B57;
+    --green-primary-dark:#1F5E3A;
+    --text:#F0F5EF;
+    --text-secondary:#93AC9E;
+    --text-faint:#5E7568;
+    --red:#E2695A;
+    --orange:#E0994E;
+    --yellow:#E3C24A;
+    --blue:#5B9AE0;
+    --gray:#748078;
+    --green-done:#4FBE7C;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 4px 14px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,Segoe UI,Arial,Helvetica,sans-serif;
+    min-height:100vh;
+  }
+  a{color:var(--lime);}
+  button{font-family:inherit;cursor:pointer;}
+
+  /* ===== TOPBAR ===== */
+  .topbar{
+    background:var(--bg-panel);
+    border-bottom:1px solid var(--card-border);
+    padding:14px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .logo{font-size:16px;font-weight:700;letter-spacing:.3px;}
+  .brand .logo span{color:var(--lime);}
+  .tabs{display:flex;gap:6px;}
+  .tab-btn{
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--text-secondary);
+    padding:8px 16px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    transition:all .15s;
+  }
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{
+    background:var(--green-primary);
+    color:#fff;
+    border-color:var(--green-primary);
+  }
+  .reset-btn{
+    background:transparent;
+    border:1px solid var(--card-border);
+    color:var(--text-faint);
+    padding:6px 12px;
+    border-radius:8px;
+    font-size:11px;
+  }
+  .reset-btn:hover{color:var(--red);border-color:var(--red);}
+
+  .main{padding:24px 28px 60px 28px;max-width:1320px;margin:0 auto;}
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* ===== WEEK BANNER ===== */
+  .week-banner{
+    background:linear-gradient(135deg,var(--green-primary-dark),var(--bg-panel));
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:18px 22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .week-banner .week-info .week-title{font-size:13px;color:var(--lime-soft);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+  .week-banner .week-info .week-dates{font-size:18px;font-weight:700;margin-top:2px;}
+  .assign-cols{display:flex;gap:22px;flex-wrap:wrap;}
+  .assign-col .assign-title{font-size:12.5px;font-weight:700;color:var(--text-secondary);margin-bottom:4px;}
+  .assign-col .assign-list{font-size:12.5px;color:var(--text);}
+  .rotate-btn{
+    background:var(--lime);
+    color:#0B1712;
+    border:none;
+    font-weight:700;
+    font-size:12.5px;
+    padding:10px 16px;
+    border-radius:8px;
+    white-space:nowrap;
+  }
+  .rotate-btn:hover{background:var(--lime-soft);}
+
+  /* ===== KPI ROW ===== */
+  .kpi-row{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .kpi{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius-sm);
+    padding:12px 10px;
+    text-align:center;
+  }
+  .kpi .kpi-val{font-size:21px;font-weight:800;color:var(--lime);}
+  .kpi .kpi-lbl{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;margin-top:2px;}
+
+  /* ===== FILTERS ===== */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .filter-chip{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    color:var(--text-secondary);
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+  }
+  .filter-chip.active{background:var(--lime);color:#0B1712;border-color:var(--lime);}
+  .filters select{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    color:var(--text);
+    padding:7px 12px;
+    border-radius:999px;
+    font-size:12px;
+    font-family:inherit;
+  }
+
+  /* ===== CARD GRID ===== */
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:14px;
+  }
+  .matriz-card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:16px;
+    cursor:pointer;
+    transition:all .15s;
+    box-shadow:var(--shadow);
+  }
+  .matriz-card:hover{background:var(--card-bg-hover);border-color:var(--lime);transform:translateY(-2px);}
+  .matriz-card .mc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .matriz-card .mc-name{font-size:15px;font-weight:800;}
+  .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+  .status-badge{
+    display:inline-flex;align-items:center;
+    font-size:11px;font-weight:700;
+    padding:3px 9px;border-radius:999px;
+    background:rgba(255,255,255,0.06);
+    color:var(--text);
+  }
+  .mc-resp{font-size:12.5px;color:var(--text-secondary);margin-bottom:10px;}
+  .mc-counts{display:flex;gap:12px;font-size:11.5px;color:var(--text-secondary);flex-wrap:wrap;}
+  .mc-counts b{color:var(--text);}
+  .mc-counts .warn{color:var(--red);font-weight:700;}
+
+  /* status colors */
+  .st-concluido .status-dot{background:var(--green-done);}
+  .st-andamento .status-dot{background:var(--yellow);}
+  .st-aguardando .status-dot{background:var(--orange);}
+  .st-pendencia .status-dot{background:var(--red);}
+  .st-novo .status-dot{background:var(--blue);}
+  .st-pausa .status-dot{background:var(--gray);}
+
+  /* ===== MODAL ===== */
+  .overlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(4,10,7,0.72);
+    z-index:100;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+    overflow-y:auto;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--bg-panel);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    width:100%;
+    max-width:920px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 22px;
+    border-bottom:1px solid var(--card-border);
+  }
+  .modal-header .mh-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;}
+  .modal-header select{
+    background:var(--card-bg);border:1px solid var(--card-border);color:var(--text);
+    padding:6px 10px;border-radius:8px;font-size:12px;font-family:inherit;margin-left:12px;
+  }
+  .close-btn{
+    background:transparent;border:none;color:var(--text-secondary);font-size:20px;
+  }
+  .close-btn:hover{color:var(--red);}
+  .modal-body{padding:20px 22px;}
+
+  .person-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+  @media(max-width:760px){.person-cols{grid-template-columns:1fr;}}
+  .person-panel{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius-sm);
+    padding:14px;
+  }
+  .person-panel h4{
+    margin:0 0 10px 0;font-size:13.5px;font-weight:800;
+    display:flex;align-items:center;gap:6px;
+  }
+  .field-label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.3px;margin:10px 0 4px 0;}
+  .field-label:first-child{margin-top:0;}
+  textarea,input[type=text],input[type=date],select.form-el{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--card-border);
+    color:var(--text);
+    padding:8px 10px;
+    border-radius:6px;
+    font-size:12.5px;
+    font-family:inherit;
+    resize:vertical;
+  }
+  textarea{min-height:56px;}
+  .mini-add-btn{
+    background:var(--green-primary);
+    color:#fff;border:none;
+    padding:7px 12px;border-radius:6px;
+    font-size:12px;font-weight:700;
+    margin-top:8px;
+  }
+  .mini-add-btn:hover{background:var(--green-primary-dark);}
+  .mini-add-btn.lime{background:var(--lime);color:#0B1712;}
+  .mini-add-btn.lime:hover{background:var(--lime-soft);}
+
+  .atividade-item, .chamado-item, .file-item{
+    background:var(--bg);
+    border:1px solid var(--card-border);
+    border-radius:6px;
+    padding:8px 10px;
+    font-size:12px;
+    margin-top:6px;
+  }
+  .atividade-item .meta, .chamado-item .meta, .file-item .meta{
+    color:var(--text-faint);font-size:10.5px;margin-bottom:3px;
+  }
+  .chamado-item .cid{color:var(--lime);font-weight:700;}
+  .file-item{display:flex;justify-content:space-between;align-items:center;}
+  .file-item .fname{font-weight:600;}
+  .file-item a{font-size:11px;font-weight:700;}
+  .empty-hint{font-size:11.5px;color:var(--text-faint);font-style:italic;padding:4px 0;}
+
+  .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+  .history-block{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius-sm);
+    padding:14px;
+  }
+  .history-block h4{margin:0 0 10px 0;font-size:13.5px;font-weight:800;}
+  .hist-entry{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--card-border);font-size:12px;}
+  .hist-entry:last-child{border-bottom:none;}
+  .hist-entry .hdate{color:var(--lime);font-weight:700;white-space:nowrap;}
+  .hist-entry .hwho{color:var(--text-secondary);white-space:nowrap;}
+
+  /* ===== CHAMADOS PAGE ===== */
+  .alert-box{
+    background:#2A2410;
+    border:1px solid #6B5A22;
+    border-left:4px solid var(--yellow);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:12.5px;
+    margin-bottom:14px;
+    display:none;
+  }
+  .alert-box.show{display:block;}
+  .alert-box.ok{background:#12261C;border-color:#2E5E42;border-left-color:var(--green-done);}
+  .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .toolbar input, .toolbar select{
+    background:var(--card-bg);border:1px solid var(--card-border);color:var(--text);
+    padding:9px 12px;border-radius:8px;font-size:12.5px;font-family:inherit;
+  }
+  .toolbar input{flex:1;min-width:240px;}
+
+  .chamados-table-wrap{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{
+    background:var(--bg-panel);
+    color:var(--text-secondary);
+    text-align:left;padding:10px 12px;font-size:11px;
+    text-transform:uppercase;letter-spacing:.3px;
+    border-bottom:1px solid var(--card-border);
+  }
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--card-border);}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  tbody tr:last-child td{border-bottom:none;}
+  .chip-status{padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;}
+
+  .new-chamado-box{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:18px;
+  }
+  .new-chamado-box h4{margin:0 0 12px 0;font-size:13.5px;}
+  .new-chamado-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px;}
+  @media(max-width:800px){.new-chamado-grid{grid-template-columns:1fr 1fr;}}
+
+  .files-inline{margin-top:8px;}
+  .files-inline .file-item{margin-top:4px;}
+
+  .footer-note{
+    text-align:center;color:var(--text-faint);font-size:11px;margin-top:30px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">🌱 iGreen <span>Analytics</span></div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-page="index">🏠 INDEX</button>
+    <button class="tab-btn" data-page="chamados">🎫 CHAMADOS</button>
+  </div>
+  <button class="reset-btn" onclick="resetarDados()">↺ Resetar dados de exemplo</button>
+</div>
+
+<div class="main">
+
+  <!-- ===================== PAGE: INDEX ===================== -->
+  <div class="page active" id="page-index">
+
+    <div class="week-banner">
+      <div class="week-info">
+        <div class="week-title" id="week-title"></div>
+        <div class="week-dates" id="week-dates"></div>
+      </div>
+      <div class="assign-cols">
+        <div class="assign-col">
+          <div class="assign-title">👩🏻 ILLANA</div>
+          <div class="assign-list" id="assign-illana"></div>
+        </div>
+        <div class="assign-col">
+          <div class="assign-title">👨🏻 ROBERTO</div>
+          <div class="assign-list" id="assign-roberto"></div>
+        </div>
+      </div>
+      <button class="rotate-btn" onclick="girarRodizio()">🔄 Nova semana (girar rodízio)</button>
+    </div>
+
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <div class="filters" id="filters"></div>
+
+    <div class="card-grid" id="card-grid"></div>
+
+    <div class="footer-note">Dados salvos automaticamente no navegador. Use "Resetar dados de exemplo" só se quiser voltar ao estado inicial de demonstração.</div>
+  </div>
+
+  <!-- ===================== PAGE: CHAMADOS ===================== -->
+  <div class="page" id="page-chamados">
+
+    <div class="new-chamado-box">
+      <h4>➕ Novo chamado</h4>
+      <div class="new-chamado-grid">
+        <select class="form-el" id="nc-matriz"></select>
+        <select class="form-el" id="nc-responsavel">
+          <option>Illana</option><option>Roberto</option>
+        </select>
+        <input type="text" class="form-el" id="nc-id" placeholder="ID do chamado (ex: TKE4D779175)">
+        <input type="text" class="form-el" id="nc-assunto" placeholder="Assunto / palavra-chave / cliente / instalação / CPF-CNPJ">
+        <select class="form-el" id="nc-status">
+          <option value="novo">🔵 Novo</option>
+          <option value="andamento">🟡 Em andamento</option>
+          <option value="aguardando">🟠 Aguardando retorno</option>
+          <option value="pendencia">🔴 Com pendência</option>
+          <option value="concluido">🟢 Concluído</option>
+          <option value="pausa">⚫ Em pausa</option>
+        </select>
+        <input type="text" class="form-el" id="nc-proxima" placeholder="Próxima ação">
+      </div>
+      <textarea id="nc-obs" placeholder="Observações..." style="margin-bottom:8px;"></textarea>
+      <div class="alert-box" id="chamado-alert"></div>
+      <button class="mini-add-btn lime" onclick="verificarEAbrirChamado()">🔎 Verificar duplicidade e abrir chamado</button>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="busca-chamado" placeholder="🔎 Pesquisar por fornecedora, cliente, instalação, CPF/CNPJ, assunto...">
+      <select id="filtro-resp-chamado"><option value="">Todos responsáveis</option><option>Illana</option><option>Roberto</option></select>
+      <select id="filtro-status-chamado">
+        <option value="">Todos os status</option>
+        <option value="novo">🔵 Novo</option>
+        <option value="andamento">🟡 Em andamento</option>
+        <option value="aguardando">🟠 Aguardando retorno</option>
+        <option value="pendencia">🔴 Com pendência</option>
+        <option value="concluido">🟢 Concluído</option>
+        <option value="pausa">⚫ Em pausa</option>
+      </select>
+    </div>
+
+    <div class="chamados-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Chamado</th><th>Fornecedora</th><th>Responsável</th><th>Assunto</th>
+            <th>Status</th><th>Abertura</th><th>Última atualização</th><th>Próxima ação</th><th>Arquivos</th>
+          </tr>
+        </thead>
+        <tbody id="chamados-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== MODAL DETALHE DA MATRIZ ===================== -->
+<div class="overlay" id="overlay" onclick="if(event.target===this) fecharModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="mh-title">
+        🏢 <span id="modal-nome"></span>
+        <select id="modal-status" onchange="atualizarStatus()"></select>
+      </div>
+      <button class="close-btn" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="person-cols">
+        <div class="person-panel" id="panel-illana"></div>
+        <div class="person-panel" id="panel-roberto"></div>
+      </div>
+      <div class="history-block">
+        <h4>📝 Histórico cronológico (compartilhado)</h4>
+        <div id="modal-historico"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   STATE — persistido em localStorage. Estrutura central de dados.
+   ========================================================================= */
+const STORAGE_KEY = "igreen_analytics_state_v1";
+
+const FORNECEDORAS = ["COMERC","RZK","COTESA","FIT","GEDISA","SUNCLICK","SUNNE","VANTAGE","GV","SOLATIO","BOM FUTURO","EDP"];
+
+const STATUS_META = {
+  concluido:  { label:"Concluído",         emoji:"🟢", cls:"st-concluido" },
+  andamento:  { label:"Em andamento",      emoji:"🟡", cls:"st-andamento" },
+  aguardando: { label:"Aguardando retorno",emoji:"🟠", cls:"st-aguardando" },
+  pendencia:  { label:"Com pendência",     emoji:"🔴", cls:"st-pendencia" },
+  novo:       { label:"Novo",              emoji:"🔵", cls:"st-novo" },
+  pausa:      { label:"Em pausa",          emoji:"⚫", cls:"st-pausa" }
+};
+
+function todayBR(){
+  const d = new Date();
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");
+}
+
+function defaultState(){
+  return {
+    weeks: [
+      {
+        numero: 1,
+        inicio: "18/08/2026",
+        fim: "22/08/2026",
+        illana: ["COMERC","COTESA","GEDISA","SUNNE","GV","BOM FUTURO"],
+        roberto: ["RZK","FIT","SUNCLICK","VANTAGE","SOLATIO","EDP"]
+      }
+    ],
+    matrizes: {
+      COMERC:  { status:"andamento", illana:{atividades:[
+          {data:"20/08", pessoa:"Illana", texto:"Realizado cruzamento da base da fornecedora com o BackOffice."}
+        ], chamados:[], bases:[]}, roberto:{atividades:[
+          {data:"19/08", pessoa:"Roberto", texto:"Identificados 260 clientes com divergência de ID Comerc. Chamado aberto para validação."}
+        ], chamados:[], bases:[]} },
+      RZK:      { status:"aguardando", illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      COTESA:   { status:"concluido",  illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      FIT:      { status:"pendencia",  illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      GEDISA:   { status:"novo",       illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      SUNCLICK: { status:"concluido",  illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      SUNNE:    { status:"novo",       illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      VANTAGE:  { status:"concluido",  illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      GV:       { status:"pausa",      illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      SOLATIO:  { status:"novo",       illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      "BOM FUTURO": { status:"concluido", illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} },
+      EDP:      { status:"novo",       illana:{atividades:[],chamados:[],bases:[]}, roberto:{atividades:[],chamados:[],bases:[]} }
+    },
+    chamados: [
+      { id:"TKE4D779175", matriz:"COMERC", responsavel:"Illana", assunto:"Divergência de instalação", status:"aguardando", dataAbertura:"20/08", ultimaAtualizacao:"20/08", proximaAcao:"Cobrar retorno da fornecedora.", observacoes:"", arquivos:[] },
+      { id:"TKE4D781240", matriz:"RZK",    responsavel:"Roberto", assunto:"Analisar base",           status:"andamento",  dataAbertura:"19/08", ultimaAtualizacao:"20/08", proximaAcao:"Concluir análise da base recebida.", observacoes:"", arquivos:[] }
+    ]
+  };
+}
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.warn("Não foi possível ler o localStorage:", e); }
+  return defaultState();
+}
+
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    alert("⚠️ Não foi possível salvar (o navegador pode estar bloqueando localStorage neste preview, ou o limite de armazenamento foi excedido por causa de arquivos grandes). No site publicado no GitHub Pages isso deve funcionar normalmente.");
+  }
+}
+
+function resetarDados(){
+  if(!confirm("Isso vai apagar todos os dados salvos neste navegador e voltar ao exemplo inicial. Confirmar?")) return;
+  state = defaultState();
+  saveState();
+  renderAll();
+}
+
+/* ---------- helpers de estado ---------- */
+function currentWeek(){ return state.weeks[state.weeks.length-1]; }
+function responsavelDaSemana(nome){
+  const w = currentWeek();
+  if(w.illana.includes(nome)) return "Illana";
+  if(w.roberto.includes(nome)) return "Roberto";
+  return "—";
+}
+function chamadosDaMatriz(nome){ return state.chamados.filter(c=>c.matriz===nome); }
+function contarPendencias(nome){ return chamadosDaMatriz(nome).filter(c=>c.status==="pendencia").length; }
+function contarBases(nome){
+  const m = state.matrizes[nome];
+  return m.illana.bases.length + m.roberto.bases.length;
+}
+
+/* =========================================================================
+   NAVEGAÇÃO
+   ========================================================================= */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById("page-"+btn.dataset.page).classList.add("active");
+  });
+});
+
+/* =========================================================================
+   RENDER: WEEK BANNER + RODÍZIO
+   ========================================================================= */
+function renderWeekBanner(){
+  const w = currentWeek();
+  document.getElementById("week-title").textContent = `Semana ${String(w.numero).padStart(2,"0")}`;
+  document.getElementById("week-dates").textContent = `${w.inicio} a ${w.fim}`;
+  document.getElementById("assign-illana").textContent = w.illana.join(" • ");
+  document.getElementById("assign-roberto").textContent = w.roberto.join(" • ");
+}
+
+function girarRodizio(){
+  if(!confirm("Isso cria uma nova semana invertendo a divisão de fornecedoras entre Illana e Roberto. O histórico da semana anterior é mantido. Confirmar?")) return;
+  const w = currentWeek();
+  const novaSemana = {
+    numero: w.numero+1,
+    inicio: "—",
+    fim: "—",
+    illana: [...w.roberto],
+    roberto: [...w.illana]
+  };
+  state.weeks.push(novaSemana);
+  saveState();
+  renderAll();
+}
+
+/* =========================================================================
+   RENDER: KPIs
+   ========================================================================= */
+function renderKpis(){
+  const todosChamados = state.chamados;
+  const abertos = todosChamados.filter(c=>c.status!=="concluido").length;
+  const andamento = todosChamados.filter(c=>c.status==="andamento").length;
+  const aguardando = todosChamados.filter(c=>c.status==="aguardando").length;
+  const pendencias = todosChamados.filter(c=>c.status==="pendencia").length;
+  const concluidos = todosChamados.filter(c=>c.status==="concluido").length;
+  let totalBases = 0;
+  FORNECEDORAS.forEach(f=> totalBases += contarBases(f));
+
+  const kpis = [
+    {icon:"🎫",label:"Chamados abertos",val:abertos},
+    {icon:"🟡",label:"Em andamento",val:andamento},
+    {icon:"🟠",label:"Aguardando retorno",val:aguardando},
+    {icon:"🔴",label:"Pendências",val:pendencias},
+    {icon:"✅",label:"Concluídos",val:concluidos},
+    {icon:"📂",label:"Bases anexadas",val:totalBases}
+  ];
+  document.getElementById("kpi-row").innerHTML = kpis.map(k=>`
+    <div class="kpi"><div class="kpi-val">${k.icon} ${k.val}</div><div class="kpi-lbl">${k.label}</div></div>
+  `).join("");
+}
+
+/* =========================================================================
+   RENDER: FILTROS + GRID DE CARDS
+   ========================================================================= */
+let filtroAtivo = { pessoa:"", status:"", pendenciasOnly:false };
+
+function renderFilters(){
+  const statusOptions = Object.entries(STATUS_META).map(([k,v])=>`<option value="${k}">${v.emoji} ${v.label}</option>`).join("");
+  document.getElementById("filters").innerHTML = `
+    <button class="filter-chip ${filtroAtivo.pessoa==='Illana'?'active':''}" onclick="setFiltroPessoa('Illana')">👩🏻 Illana</button>
+    <button class="filter-chip ${filtroAtivo.pessoa==='Roberto'?'active':''}" onclick="setFiltroPessoa('Roberto')">👨🏻 Roberto</button>
+    <button class="filter-chip ${filtroAtivo.pessoa===''?'active':''}" onclick="setFiltroPessoa('')">Todos</button>
+    <select onchange="filtroAtivo.status=this.value; renderCardGrid();">
+      <option value="">🚦 Todos os status</option>${statusOptions}
+    </select>
+    <button class="filter-chip ${filtroAtivo.pendenciasOnly?'active':''}" onclick="togglePendenciasOnly()">⚠️ Só pendências</button>
+  `;
+}
+function setFiltroPessoa(p){ filtroAtivo.pessoa = (filtroAtivo.pessoa===p? "": p); renderFilters(); renderCardGrid(); }
+function togglePendenciasOnly(){ filtroAtivo.pendenciasOnly = !filtroAtivo.pendenciasOnly; renderFilters(); renderCardGrid(); }
+
+function renderCardGrid(){
+  let lista = FORNECEDORAS.slice();
+  if(filtroAtivo.pessoa) lista = lista.filter(f=> responsavelDaSemana(f)===filtroAtivo.pessoa);
+  if(filtroAtivo.status) lista = lista.filter(f=> state.matrizes[f].status===filtroAtivo.status);
+  if(filtroAtivo.pendenciasOnly) lista = lista.filter(f=> contarPendencias(f)>0);
+
+  document.getElementById("card-grid").innerHTML = lista.map(nome=>{
+    const m = state.matrizes[nome];
+    const meta = STATUS_META[m.status];
+    const resp = responsavelDaSemana(nome);
+    const respEmoji = resp==="Illana" ? "👩🏻" : resp==="Roberto" ? "👨🏻" : "—";
+    const nChamados = chamadosDaMatriz(nome).length;
+    const nBases = contarBases(nome);
+    const nPend = contarPendencias(nome);
+    return `
+    <div class="matriz-card ${meta.cls}" onclick="abrirModal('${nome.replace(/'/g,"\\'")}')">
+      <div class="mc-top">
+        <div class="mc-name">🏢 ${nome}</div>
+        <span class="status-badge"><span class="status-dot"></span>${meta.label}</span>
+      </div>
+      <div class="mc-resp">${respEmoji} ${resp}</div>
+      <div class="mc-counts">
+        <span>🎫 <b>${nChamados}</b> chamados</span>
+        <span>📂 <b>${nBases}</b> bases</span>
+        <span class="${nPend>0?'warn':''}">⚠️ <b>${nPend}</b> pendências</span>
+      </div>
+    </div>`;
+  }).join("") || `<div class="empty-hint">Nenhuma fornecedora encontrada com esse filtro.</div>`;
+}
+
+/* =========================================================================
+   MODAL DE DETALHE DA MATRIZ
+   ========================================================================= */
+let modalMatrizAtual = null;
+
+function abrirModal(nome){
+  modalMatrizAtual = nome;
+  document.getElementById("modal-nome").textContent = nome;
+  const statusSelect = document.getElementById("modal-status");
+  statusSelect.innerHTML = Object.entries(STATUS_META).map(([k,v])=>`<option value="${k}">${v.emoji} ${v.label}</option>`).join("");
+  statusSelect.value = state.matrizes[nome].status;
+  renderPersonPanels();
+  renderModalHistorico();
+  document.getElementById("overlay").classList.add("show");
+}
+function fecharModal(){
+  document.getElementById("overlay").classList.remove("show");
+  modalMatrizAtual = null;
+  renderCardGrid();
+  renderKpis();
+}
+function atualizarStatus(){
+  const novo = document.getElementById("modal-status").value;
+  state.matrizes[modalMatrizAtual].status = novo;
+  saveState();
+}
+
+function renderPersonPanels(){
+  ["illana","roberto"].forEach(pessoaKey=>{
+    const pessoaLabel = pessoaKey==="illana" ? "👩🏻 Illana" : "👨🏻 Roberto";
+    const dados = state.matrizes[modalMatrizAtual][pessoaKey];
+
+    const atividadesHtml = dados.atividades.length ? dados.atividades.slice().reverse().map(a=>`
+      <div class="atividade-item"><div class="meta">${a.data} — ${a.pessoa}</div>${a.texto}</div>
+    `).join("") : `<div class="empty-hint">Nenhuma atividade registrada.</div>`;
+
+    const chamadosDaPessoa = chamadosDaMatriz(modalMatrizAtual).filter(c=>c.responsavel===(pessoaKey==="illana"?"Illana":"Roberto"));
+    const chamadosHtml = chamadosDaPessoa.length ? chamadosDaPessoa.map(c=>{
+      const meta = STATUS_META[c.status];
+      return `<div class="chamado-item">
+        <div class="meta">🎫 <span class="cid">${c.id}</span> · ${c.dataAbertura}</div>
+        📌 ${c.assunto}<br>${meta.emoji} ${meta.label}<br>➡️ ${c.proximaAcao||"—"}
+      </div>`;
+    }).join("") : `<div class="empty-hint">Nenhum chamado registrado por ${pessoaKey==="illana"?"Illana":"Roberto"} nesta matriz.</div>`;
+
+    const basesHtml = dados.bases.length ? dados.bases.map(b=>`
+      <div class="file-item">
+        <div><span class="fname">📎 ${b.nome}</span> <span class="meta">v${b.versao} · ${b.data} · ${b.pessoa}</span></div>
+        <a href="${b.dataUrl}" download="${b.nome}">Baixar</a>
+      </div>
+    `).join("") : `<div class="empty-hint">Nenhuma base anexada.</div>`;
+
+    document.getElementById("panel-"+pessoaKey).innerHTML = `
+      <h4>${pessoaLabel}</h4>
+
+      <div class="field-label">📝 Nova atividade</div>
+      <textarea id="ativ-texto-${pessoaKey}" placeholder="Ex: Realizado cruzamento da base com o BackOffice."></textarea>
+      <button class="mini-add-btn" onclick="adicionarAtividade('${pessoaKey}')">Adicionar atividade</button>
+      <div class="field-label" style="margin-top:14px;">Atividades registradas</div>
+      ${atividadesHtml}
+
+      <div class="field-label" style="margin-top:16px;">🎫 Chamados de ${pessoaKey==="illana"?"Illana":"Roberto"} nesta matriz</div>
+      ${chamadosHtml}
+      <div class="empty-hint">Para abrir um chamado novo, use a aba 🎫 CHAMADOS (com verificação de duplicidade).</div>
+
+      <div class="field-label" style="margin-top:16px;">📂 Bases de trabalho</div>
+      <input type="file" id="file-input-${pessoaKey}" multiple>
+      <button class="mini-add-btn" onclick="anexarBases('${pessoaKey}')">Anexar arquivo(s)</button>
+      <div class="files-inline">${basesHtml}</div>
+    `;
+  });
+}
+
+function adicionarAtividade(pessoaKey){
+  const textarea = document.getElementById("ativ-texto-"+pessoaKey);
+  const texto = textarea.value.trim();
+  if(!texto) return;
+  const pessoaLabel = pessoaKey==="illana" ? "Illana" : "Roberto";
+  state.matrizes[modalMatrizAtual][pessoaKey].atividades.push({data: todayBR(), pessoa: pessoaLabel, texto});
+  textarea.value = "";
+  saveState();
+  renderPersonPanels();
+  renderModalHistorico();
+}
+
+function anexarBases(pessoaKey){
+  const input = document.getElementById("file-input-"+pessoaKey);
+  const files = Array.from(input.files || []);
+  if(files.length===0) return;
+  const pessoaLabel = pessoaKey==="illana" ? "Illana" : "Roberto";
+  const dados = state.matrizes[modalMatrizAtual][pessoaKey];
+
+  let pendentes = files.length;
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const existentes = dados.bases.filter(b=>b.nome===file.name).length;
+      dados.bases.push({
+        nome: file.name,
+        data: todayBR(),
+        pessoa: pessoaLabel,
+        versao: existentes+1,
+        dataUrl: e.target.result
+      });
+      pendentes--;
+      if(pendentes===0){
+        input.value = "";
+        saveState();
+        renderPersonPanels();
+        renderModalHistorico();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderModalHistorico(){
+  const m = state.matrizes[modalMatrizAtual];
+  let entradas = [];
+  ["illana","roberto"].forEach(pk=>{
+    const label = pk==="illana"?"Illana":"Roberto";
+    m[pk].atividades.forEach(a=> entradas.push({data:a.data, quem:label, texto:"🔎 "+a.texto}));
+    m[pk].bases.forEach(b=> entradas.push({data:b.data, quem:label, texto:`📂 Base anexada: ${b.nome} (v${b.versao})`}));
+  });
+  chamadosDaMatriz(modalMatrizAtual).forEach(c=>{
+    entradas.push({data:c.dataAbertura, quem:c.responsavel, texto:`🎫 Chamado ${c.id} aberto — ${c.assunto}`});
+  });
+  entradas.sort((a,b)=> b.data.localeCompare(a.data));
+
+  document.getElementById("modal-historico").innerHTML = entradas.length ? entradas.map(e=>`
+    <div class="hist-entry"><span class="hdate">${e.data}</span><span class="hwho">— ${e.quem}</span><span>${e.texto}</span></div>
+  `).join("") : `<div class="empty-hint">Sem histórico registrado ainda para esta matriz.</div>`;
+}
+
+/* =========================================================================
+   PAGE: CHAMADOS
+   ========================================================================= */
+function preencherSelectMatrizes(){
+  document.getElementById("nc-matriz").innerHTML = FORNECEDORAS.map(f=>`<option>${f}</option>`).join("");
+}
+
+function verificarEAbrirChamado(){
+  const matriz = document.getElementById("nc-matriz").value;
+  const responsavel = document.getElementById("nc-responsavel").value;
+  const id = document.getElementById("nc-id").value.trim();
+  const assunto = document.getElementById("nc-assunto").value.trim();
+  const status = document.getElementById("nc-status").value;
+  const proxima = document.getElementById("nc-proxima").value.trim();
+  const obs = document.getElementById("nc-obs").value.trim();
+
+  const alertBox = document.getElementById("chamado-alert");
+
+  if(!id || !assunto){
+    alertBox.className = "alert-box show";
+    alertBox.innerHTML = "⚠️ Preencha ao menos o <b>ID do chamado</b> e o <b>assunto</b> para verificar duplicidade.";
+    return;
+  }
+
+  const termo = assunto.toLowerCase();
+  const possiveisDuplicados = state.chamados.filter(c=>
+    c.matriz===matriz && c.status!=="concluido" &&
+    (c.assunto.toLowerCase().includes(termo) || termo.includes(c.assunto.toLowerCase()))
+  );
+
+  if(possiveisDuplicados.length>0){
+    alertBox.className = "alert-box show";
+    alertBox.innerHTML = `⚠️ <b>ATENÇÃO — já existe uma tratativa semelhante em andamento para ${matriz}:</b><br>` +
+      possiveisDuplicados.map(c=>{
+        const meta = STATUS_META[c.status];
+        return `ID: <b>${c.id}</b> · Responsável: ${c.responsavel} · ${meta.emoji} ${meta.label} · Aberto em ${c.dataAbertura} · Última atualização ${c.ultimaAtualizacao}`;
+      }).join("<br>") + `<br><br>Se ainda assim quiser abrir um novo chamado, clique novamente em "Verificar e abrir chamado".`;
+    // marca pra permitir abrir no próximo clique
+    if(!verificarEAbrirChamado._confirmado){
+      verificarEAbrirChamado._confirmado = true;
+      return;
+    }
+  }
+  verificarEAbrirChamado._confirmado = false;
+
+  if(state.chamados.some(c=>c.id===id)){
+    alertBox.className = "alert-box show";
+    alertBox.innerHTML = `⚠️ Já existe um chamado com o ID <b>${id}</b>. Use outro ID.`;
+    return;
+  }
+
+  state.chamados.push({
+    id, matriz, responsavel, assunto, status,
+    dataAbertura: todayBR(), ultimaAtualizacao: todayBR(),
+    proximaAcao: proxima, observacoes: obs, arquivos: []
+  });
+  saveState();
+
+  alertBox.className = "alert-box show ok";
+  alertBox.innerHTML = `✅ Chamado <b>${id}</b> aberto com sucesso para ${matriz}.`;
+
+  ["nc-id","nc-assunto","nc-proxima","nc-obs"].forEach(elId=> document.getElementById(elId).value = "");
+
+  renderChamadosTable();
+  renderKpis();
+  renderCardGrid();
+}
+
+function renderChamadosTable(){
+  const busca = document.getElementById("busca-chamado").value.trim().toLowerCase();
+  const filtroResp = document.getElementById("filtro-resp-chamado").value;
+  const filtroStatus = document.getElementById("filtro-status-chamado").value;
+
+  let lista = state.chamados.filter(c=>{
+    const texto = `${c.matriz} ${c.assunto} ${c.id} ${c.observacoes}`.toLowerCase();
+    const mB = !busca || texto.includes(busca);
+    const mR = !filtroResp || c.responsavel===filtroResp;
+    const mS = !filtroStatus || c.status===filtroStatus;
+    return mB && mR && mS;
+  });
+
+  document.getElementById("chamados-body").innerHTML = lista.length ? lista.map(c=>{
+    const meta = STATUS_META[c.status];
+    return `
+    <tr>
+      <td><b>${c.id}</b></td>
+      <td>${c.matriz}</td>
+      <td>${c.responsavel}</td>
+      <td>${c.assunto}</td>
+      <td><span class="chip-status ${'st-'+c.status}"><span class="status-dot"></span>${meta.emoji} ${meta.label}</span></td>
+      <td>${c.dataAbertura}</td>
+      <td>${c.ultimaAtualizacao}</td>
+      <td>${c.proximaAcao||"—"}</td>
+      <td>${c.arquivos.length}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="9" class="empty-hint">Nenhum chamado encontrado.</td></tr>`;
+}
+
+document.addEventListener("input", (e)=>{
+  if(["busca-chamado"].includes(e.target.id)) renderChamadosTable();
+});
+document.addEventListener("change", (e)=>{
+  if(["filtro-resp-chamado","filtro-status-chamado"].includes(e.target.id)) renderChamadosTable();
+});
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+function renderAll(){
+  renderWeekBanner();
+  renderKpis();
+  renderFilters();
+  renderCardGrid();
+  preencherSelectMatrizes();
+  renderChamadosTable();
+}
+renderAll();
+</script>
+
+</body>
+</html>
